@@ -13,94 +13,56 @@ from ._folders import audio_caption, audio_folder
 logger = logging.getLogger(__name__)
 
 
-def get_random_audio() -> Tuple[Optional[Path], Optional[str]]:
-    """Return a random AoE2 quote audio file.
+def _get_random_file(
+    pattern: str, category: str
+) -> Tuple[Optional[Path], Optional[str]]:
+    """Get a random file matching the pattern, checking cache first.
 
-    Returns (file_path, file_id) tuple where one of them will be None:
-    - If cached: (None, file_id)
-    - If new file: (file_path, None)
-    - If no files: (None, None)
+    Args:
+        pattern: Glob pattern to match files (e.g., "*.wav", "[0-9][0-9] *.mp3")
+        category: Category name for logging (e.g., "audio", "taunt", "civilization")
+
+    Returns:
+        (file_path, file_id) tuple where one of them will be None:
+        - If cached: (None, file_id)
+        - If new file: (file_path, None)
+        - If no files: (None, None)
     """
-    logger.debug("Getting random audio")
+    logger.debug(f"Getting random {category}")
 
     # First try to get from cache
-    cached = get_random_cached_file("*.wav")
+    cached = get_random_cached_file(pattern)
     if cached:
         filename, file_id = cached
-        logger.debug(f"Using cached audio: {filename}")
+        logger.debug(f"Using cached {category}: {filename}")
         return None, file_id
 
     # No cached files, search filesystem
-    logger.debug("No cached audio files, searching filesystem")
-    audio_files = list(audio_folder.glob("*.wav"))
+    logger.debug(f"No cached {category} files, searching filesystem")
+    files = list(audio_folder.glob(pattern))
 
-    if not audio_files:
-        logger.warning("No audio files found")
+    if not files:
+        logger.warning(f"No {category} files found")
         return None, None
 
-    audio = choice(audio_files)
-    logger.debug(f"Selected {audio}")
-    return audio, None
+    selected = choice(files)
+    logger.debug(f"Selected {selected}")
+    return selected, None
+
+
+def get_random_audio() -> Tuple[Optional[Path], Optional[str]]:
+    """Return a random AoE2 quote audio file."""
+    return _get_random_file("*.wav", "audio")
 
 
 def get_random_taunt() -> Tuple[Optional[Path], Optional[str]]:
-    """Return a random AoE2 taunt audio file.
-
-    Returns (file_path, file_id) tuple where one of them will be None:
-    - If cached: (None, file_id)
-    - If new file: (file_path, None)
-    - If no files: (None, None)
-    """
-    logger.debug("Getting random taunt")
-
-    # First try to get from cache
-    cached = get_random_cached_file("[0-9][0-9] *.mp3")
-    if cached:
-        filename, file_id = cached
-        logger.debug(f"Using cached taunt: {filename}")
-        return None, file_id
-
-    # No cached files, search filesystem
-    logger.debug("No cached taunt files, searching filesystem")
-    taunt_files = list(audio_folder.glob("[0-9][0-9] *.mp3"))
-
-    if not taunt_files:
-        logger.warning("No taunt files found")
-        return None, None
-
-    taunt = choice(taunt_files)
-    logger.debug(f"Selected {taunt}")
-    return taunt, None
+    """Return a random AoE2 taunt audio file."""
+    return _get_random_file("[0-9][0-9] *.mp3", "taunt")
 
 
 def get_random_civilization() -> Tuple[Optional[Path], Optional[str]]:
-    """Return a random AoE2 civilization audio file.
-
-    Returns (file_path, file_id) tuple where one of them will be None:
-    - If cached: (None, file_id)
-    - If new file: (file_path, None)
-    - If no files: (None, None)
-    """
-    logger.debug("Getting random civilization")
-
-    # First try to get from cache
-    cached = get_random_cached_file("civ_*.mp3")
-    if cached:
-        filename, file_id = cached
-        logger.debug(f"Using cached civilization: {filename}")
-        return None, file_id
-
-    # No cached files, search filesystem
-    logger.debug("No cached civilization files, searching filesystem")
-    civ_files = list(audio_folder.glob("civ_*.mp3"))
-
-    if not civ_files:
-        logger.warning("No civilization files found")
-        return None, None
-
-    civilization = choice(civ_files)
-    logger.debug(f"Selected {civilization}")
-    return civilization, None
+    """Return a random AoE2 civilization audio file."""
+    return _get_random_file("civ_*.mp3", "civilization")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -138,7 +100,6 @@ async def send_audio(
         action=ChatAction.RECORD_VOICE,
     )
 
-    # Determine what to send and optional title
     audio_to_send = file_id
     title = None
 
@@ -160,7 +121,6 @@ async def send_audio(
         logger.error("audio_file is None but no file_id provided")
         return
 
-    # Single send_audio call
     message = await context.bot.send_audio(
         chat_id=update.effective_chat.id,
         audio=audio_to_send,
@@ -178,19 +138,26 @@ async def send_audio(
     logger.info(f"Audio sent: {title or 'cached file'}")
 
 
-async def send_sound(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    audio_file, file_id = get_random_audio()
+async def _send_random_audio(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    get_file_func,
+):
+    """Helper to send a random audio file using the provided getter function."""
+    audio_file, file_id = get_file_func()
     await send_audio(update, context, audio_file, file_id)
+
+
+async def send_sound(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await _send_random_audio(update, context, get_random_audio)
 
 
 async def send_civ(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    audio_file, file_id = get_random_civilization()
-    await send_audio(update, context, audio_file, file_id)
+    await _send_random_audio(update, context, get_random_civilization)
 
 
 async def send_taunt(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    audio_file, file_id = get_random_taunt()
-    await send_audio(update, context, audio_file, file_id)
+    await _send_random_audio(update, context, get_random_taunt)
 
 
 async def taunt(update: Update, context: ContextTypes.DEFAULT_TYPE):
