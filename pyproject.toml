@@ -12,13 +12,23 @@ description = "A Telegram Bot that gives a random quote of Age of Empires 2 orig
 readme = "README.md"
 license = { file = "LICENSE" }
 classifiers = [
-  "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: MIT License",
-  "Operating System :: OS Independent",
   "Development Status :: 4 - Beta",
-  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-  "Programming Language :: Python :: 3.8",
+  "Intended Audience :: End Users/Desktop",
+  "Intended Audience :: Developers",
   "Topic :: Communications :: Chat",
+  "Topic :: Games/Entertainment",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: OS Independent",
+  "Environment :: No Input/Output (Daemon)",
+  "Natural Language :: English",
+  "Natural Language :: French",
 ]
 
 [project.urls]
