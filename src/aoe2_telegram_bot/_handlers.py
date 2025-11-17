@@ -101,11 +101,27 @@ def register_taunt_handlers(application: ApplicationBuilder):
         application.add_handler(CommandHandler(f"{i}", taunt))
 
 
+def register_civilization_handlers(application: ApplicationBuilder):
+    civ_files = list(audio_folder.glob("civ_*.mp3"))
+    for civ_file in civ_files:
+        civ_name = civ_file.stem.replace("civ_", "").lower()
+        application.add_handler(
+            CommandHandler(
+                civ_name,
+                lambda update, context, file=civ_file: send_audio(
+                    update, context, file
+                ),
+            )
+        )
+
+
 def register_handlers(application: ApplicationBuilder):
     logger.info("Registering handlers")
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("aoe", send_sound))
+    application.add_handler(CommandHandler("civilization", send_civ))
     application.add_handler(CommandHandler("civ", send_civ))
     application.add_handler(CommandHandler("taunt", send_taunt))
 
     register_taunt_handlers(application)
+    register_civilization_handlers(application)
