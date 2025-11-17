@@ -14,7 +14,7 @@ audio_archives = [
 ]
 
 # systemd
-service_file = current_module_folder / "/distro/aoe2-bot.service"
+service_file = current_module_folder / "distro" / "aoe2-bot.service"
 systemd_folder = Path("/etc/systemd/system/")
 config_folder = Path.home() / ".config/aoe2-bot"
 env_file = config_folder / "env"
