@@ -2,8 +2,8 @@ import logging
 from os import environ
 from typing import Optional
 
+from telegram import Update
 from telegram.ext import ApplicationBuilder
-from telegram.Update import MESSAGE
 
 from ._folders import env_file
 from ._handlers import register_handlers
@@ -56,4 +56,4 @@ def main() -> None:
     application = ApplicationBuilder().token(get_token()).build()
     register_handlers(application)
     logger.info("Starting polling...")
-    application.run_polling(allowed_updates=MESSAGE)
+    application.run_polling(allowed_updates=Update.MESSAGE)
