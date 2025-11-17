@@ -4,10 +4,10 @@ After=network.target
 
 [Service]
 Type=simple
-User=ubuntu
-Group=ubuntu
+User=opc
+Group=opc
 
-EnvironmentFile=/home/ubuntu/.config/%N/env
+EnvironmentFile=/home/opc/.config/%N/env
 ExecStart=/usr/bin/python3 -m aoe2_bot
 
 Restart=always
