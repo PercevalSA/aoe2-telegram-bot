@@ -6,7 +6,7 @@ from telegram import Update
 from telegram.constants import ChatAction
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-from ._folders import audio_caption, audio_folder
+from ._folders import audio_caption, audio_folder, civilizations_pattern
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +97,7 @@ async def taunt(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def civilization(update: Update, context: ContextTypes.DEFAULT_TYPE):
     civ_name = update.message.text.strip("/").lower()
-    civ_file = list(audio_folder.glob(f"civ_{civ_name}.mp3"))
+    civ_file = list(audio_folder.glob(f"{civ_name.capitalize()}.mp3"))
     logger.debug(f"Civilization {civ_name} found: {civ_file}")
 
     if not civ_file:
@@ -120,9 +120,7 @@ def register_taunt_handlers(application: ApplicationBuilder):
 
 
 def _get_civilization_list() -> list[str]:
-    civ_files = list(audio_folder.glob("civ_*.mp3"))
-    civ_names = [civ_file.stem.replace("civ_", "") for civ_file in civ_files]
-    return civ_names
+    return [str(civ.stem) for civ in list(audio_folder.glob(civilizations_pattern))]
 
 
 def register_civilization_handlers(application: ApplicationBuilder):
@@ -130,11 +128,8 @@ def register_civilization_handlers(application: ApplicationBuilder):
         application.add_handler(CommandHandler(civ_name, civilization))
 
 
-def list_civilizations(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # this should be cached
-    civ_files = list(audio_folder.glob("civ_*.mp3"))
-    civ_names = [civ_file.stem.replace("civ_", "") for civ_file in civ_files]
-    civ_list = ", ".join(civ_names)
+async def list_civilizations(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    civ_list = ", ".join(_get_civilization_list())
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f"Available civilizations: {civ_list}",
