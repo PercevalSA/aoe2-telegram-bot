@@ -8,9 +8,6 @@ from ._folders import env_file
 from ._handlers import register_handlers
 from .bootstrap import bootstrap
 
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
 logger = logging.getLogger(__name__)
 
 
@@ -46,6 +43,14 @@ def get_token() -> str:
 
 
 def main() -> None:
+    """Entry point for aoe2-telegram-bot command."""
+    # Configure logging only if not already configured
+    if not logging.getLogger().hasHandlers():
+        logging.basicConfig(
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            level=logging.INFO,
+        )
+
     bootstrap()
     application = ApplicationBuilder().token(get_token()).build()
     register_handlers(application)
