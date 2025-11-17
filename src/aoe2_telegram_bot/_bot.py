@@ -36,7 +36,9 @@ def get_token() -> str:
         token = get_token_from_env_file()
 
     if token is None:
-        error = f"TGB_TOKEN not found. Set it as an environment variable or in {DEFAULT_ENV_FILE}"
+        error = (
+            f"TGB_TOKEN not found. Set it as an environment variable or in {env_file}"
+        )
         logger.error(error)
         raise EnvironmentError(error)
 

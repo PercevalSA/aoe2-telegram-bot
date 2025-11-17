@@ -88,13 +88,13 @@ def create_systemd_service_file() -> None:
     service_content = service_content.replace("Group=%i", f"Group={user}")
     service_content = service_content.replace("%h", f"/home/{user}")
 
-    dest_file = Path.cwd() / "aoe2-bot.service"
+    dest_file = Path.cwd() / "aoe2-telegram-bot.service"
     dest_file.write_text(service_content)
     logger.info(f"Service file installed in current folder {dest_file}")
 
     logger.info(
-        "install systemd file with sudo cp aoe2-bot.service /etc/systemd/system/aoe2-bot.service"
+        "install systemd file with sudo cp aoe2-telegram-bot.service /etc/systemd/system/aoe2-telegram-bot.service"
     )
     logger.info(
-        "Then run: sudo systemctl daemon-reload && sudo systemctl enable aoe2-bot && sudo systemctl start aoe2-bot"
+        "Then run: sudo systemctl daemon-reload && sudo systemctl enable aoe2-telegram-bot && sudo systemctl start aoe2-telegram-bot"
     )

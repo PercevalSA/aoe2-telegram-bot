@@ -37,7 +37,7 @@ jobs:
     
     - name: Check package can be imported
       run: |
-        python -c "import aoe2_bot; print('Package imported successfully')"
+        python -c "import aoe2_telegram_bot; print('Package imported successfully')"
 
   build:
     runs-on: ubuntu-latest

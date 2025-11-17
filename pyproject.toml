@@ -3,7 +3,7 @@ requires = ["flit_core>=3.4,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
-name = "aoe2_bot"
+name = "aoe2_telegram_bot"
 version = "0.2"
 dependencies = ["python-telegram-bot>=v20.0", "requests>=2.31.0"]
 requires-python = ">=3.8"
@@ -32,9 +32,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/PercevalSA/aoe2-bot"
-Issues = "https://github.com/PercevalSA/aoe2-bot/issues"
+Homepage = "https://github.com/PercevalSA/aoe2-telegram-bot"
+Issues = "https://github.com/PercevalSA/aoe2-telegram-bot/issues"
 
 [project.scripts]
-aoe2-bot = "aoe2_bot._bot:main"
-aoe2-bot-bootstrap = "aoe2_bot.bootstrap:create_systemd_service_file"
+aoe2-telegram-bot = "aoe2_telegram_bot._bot:main"
+aoe2-telegram-bot-bootstrap = "aoe2_telegram_bot.bootstrap:create_systemd_service_file"
