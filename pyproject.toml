@@ -37,4 +37,4 @@ Issues = "https://github.com/PercevalSA/aoe2-bot/issues"
 
 [project.scripts]
 aoe2-bot = "aoe2_bot._bot:main"
-aoe2-bot-bootstrap = "aoe2_bot.bootstrap:install_systemd_service"
+aoe2-bot-bootstrap = "aoe2_bot.bootstrap:create_systemd_service_file"

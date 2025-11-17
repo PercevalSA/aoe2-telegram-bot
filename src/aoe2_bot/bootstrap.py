@@ -2,7 +2,6 @@ import logging
 import os
 import platform
 from pathlib import Path
-from shutil import copy
 from zipfile import ZipFile
 
 import requests
@@ -13,7 +12,6 @@ from ._folders import (
     audio_url,
     bootstrap_file,
     service_file,
-    systemd_folder,
 )
 
 logger = logging.getLogger(__name__)
@@ -77,20 +75,26 @@ def bootstrap() -> None:
     finish_bootstrap()
 
 
-def install_systemd_service() -> None:
+def create_systemd_service_file() -> None:
     if platform.system() != "Linux":
         logger.error("Systemd service is only available on Linux")
         return
 
-    if os.geteuid() != 0:
-        logger.error("Service installation requires root privileges")
-        return
+    logger.info("Creating systemd service file...")
 
-    logger.info("Installing systemd service...")
-    copy(service_file, systemd_folder)
-    os.system("systemctl daemon-reload")
-    os.system("systemctl enable aoe2-bot")
+    user = os.environ.get("USER")
+    service_content = service_file.read_text()
+    service_content = service_content.replace("User=%i", f"User={user}")
+    service_content = service_content.replace("Group=%i", f"Group={user}")
+    service_content = service_content.replace("%h", f"/home/{user}")
 
+    dest_file = Path.cwd() / "aoe2-bot.service"
+    dest_file.write_text(service_content)
+    logger.info(f"Service file installed in current folder {dest_file}")
 
-if __name__ == "__main__":
-    install_systemd_service()
+    logger.info(
+        "install systemd file with sudo cp aoe2-bot.service /etc/systemd/system/aoe2-bot.service"
+    )
+    logger.info(
+        "Then run: sudo systemctl daemon-reload && sudo systemctl enable aoe2-bot && sudo systemctl start aoe2-bot"
+    )
