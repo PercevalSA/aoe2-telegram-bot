@@ -16,6 +16,24 @@ mkdir -p $HOME/.config/aoe2-bot
 echo 'TGB_TOKEN=xxxx' >$HOME/.config/aoe2-bot/env
 ```
 
+## running
+
+When started for the first time the bot will download sounds from internet and store them in the package folder.
+When you start the bot manually you will need to export the token as environment variable.
+
+```bash
+export $(cat $HOME/.config/aoe2-bot/env | xargs)
+python3 -m aoe2_bot
+```
+
+If you need the bot to run as a service you can use the provided systemd service file. You can install it with the provided bootstrap script.
+
+```bash
+sudo -E aoe2-bot-bootstrap
+sudo systemctl start aoe2-bot
+sudo systemctl enable aoe2-bot
+```
+
 ## Installed sounds
 
 * `taunt.zip` are french taunt in `mp3` format. There are 42 taunts in total.
