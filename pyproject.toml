@@ -38,3 +38,17 @@ Issues = "https://github.com/PercevalSA/aoe2-telegram-bot/issues"
 [project.scripts]
 aoe2-telegram-bot = "aoe2_telegram_bot._bot:main"
 aoe2-telegram-bot-bootstrap = "aoe2_telegram_bot.bootstrap:create_systemd_service_file"
+
+[project.optional-dependencies]
+test = [
+  "pytest>=7.4.0",
+  "pytest-asyncio>=0.21.0",
+  "pytest-cov>=4.1.0",
+  "pytest-mock>=3.11.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "--cov=aoe2_telegram_bot --cov-report=term-missing --cov-report=html"
+pythonpath = ["src"]
