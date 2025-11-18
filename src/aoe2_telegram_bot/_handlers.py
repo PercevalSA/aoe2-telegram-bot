@@ -8,7 +8,13 @@ from telegram.constants import ChatAction
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 from ._files_id_db import get_file_id, get_random_cached_file, set_file_id
-from ._folders import audio_caption, audio_folder, civilizations_pattern
+from ._folders import (
+    audio_caption,
+    audio_folder,
+    audio_pattern,
+    civilizations_pattern,
+    taunts_pattern,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -52,17 +58,17 @@ def _get_random_file(
 
 def get_random_audio() -> Tuple[Optional[Path], Optional[str]]:
     """Return a random AoE2 quote audio file."""
-    return _get_random_file("*.wav", "audio")
+    return _get_random_file(audio_pattern, "audio")
 
 
 def get_random_taunt() -> Tuple[Optional[Path], Optional[str]]:
     """Return a random AoE2 taunt audio file."""
-    return _get_random_file("[0-9][0-9] *.mp3", "taunt")
+    return _get_random_file(taunts_pattern, "taunt")
 
 
 def get_random_civilization() -> Tuple[Optional[Path], Optional[str]]:
     """Return a random AoE2 civilization audio file."""
-    return _get_random_file("civ_*.mp3", "civilization")
+    return _get_random_file(civilizations_pattern, "civilization")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):

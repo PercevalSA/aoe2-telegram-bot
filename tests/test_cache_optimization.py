@@ -65,13 +65,13 @@ def test_cache_optimization():
             sys.exit(1)
 
     # Test getting random civilizations
-    print("\nTesting civilization pattern (civ_*.mp3):")
+    print("\nTesting civilization pattern ([A-Z][a-z]*.mp3):")
     for i in range(3):
-        result = get_random_cached_file("civ_*.mp3")
+        result = get_random_cached_file("[A-Z][a-z]*.mp3")
         if result:
             filename, file_id = result
             print(f"  {i + 1}. Got: {filename} -> {file_id}")
-            assert filename in ["civ_britons.mp3", "civ_celts.mp3"]
+            assert filename in ["Britons.mp3", "Celts.mp3"]
             assert file_id in ["file_id_5", "file_id_6"]
         else:
             print("  ERROR: No match found")

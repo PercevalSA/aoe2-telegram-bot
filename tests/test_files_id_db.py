@@ -110,11 +110,13 @@ def test_load_cache_empty_file(tmp_path, monkeypatch):
 def test_cache_persistence(tmp_path, monkeypatch):
     """Test that cache persists to disk."""
     from aoe2_telegram_bot import _folders
+    from aoe2_telegram_bot._files_id_db import _files_id_cache
 
     cache_file = tmp_path / "cache.json"
     monkeypatch.setattr(_folders, "files_id_db", cache_file)
 
-    clear_file_id_db()
+    # Clear in-memory cache but don't delete file
+    _files_id_cache.clear()
 
     # Set a file ID (should write to disk)
     test_file = tmp_path / "test.wav"
@@ -124,8 +126,8 @@ def test_cache_persistence(tmp_path, monkeypatch):
     # Verify file was created
     assert cache_file.exists()
 
-    # Clear in-memory cache and reload
-    clear_file_id_db()
+    # Clear in-memory cache only and reload
+    _files_id_cache.clear()
     load_cache()
 
     # Should load from disk

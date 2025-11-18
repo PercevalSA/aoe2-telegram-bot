@@ -1,8 +1,8 @@
 """Tests for handler functions."""
 
 import pytest
-from aoe2_telegram_bot._files_id_db import set_file_id
 
+from aoe2_telegram_bot._files_id_db import set_file_id
 from aoe2_telegram_bot._handlers import (
     _get_random_file,
     get_random_audio,
@@ -72,7 +72,7 @@ def test_get_random_civilization(temp_audio_folder):
 
     assert file_path is not None
     assert file_path.suffix == ".mp3"
-    assert file_path.name.startswith("civ_")
+    assert file_path.name in ["Britons.mp3", "Celts.mp3"]
 
 
 @pytest.mark.asyncio

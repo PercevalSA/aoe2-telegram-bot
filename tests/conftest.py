@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
 from aoe2_telegram_bot._files_id_db import clear_file_id_db
 
 
@@ -21,7 +22,7 @@ def temp_audio_folder(tmp_path, monkeypatch):
     Creates:
         - test1.wav, test2.wav (audio quotes)
         - 01 taunt.mp3, 02 taunt.mp3 (taunts)
-        - civ_britons.mp3, civ_celts.mp3 (civilizations)
+        - Britons.mp3, Celts.mp3 (civilizations)
     """
     audio_dir = tmp_path / "audio"
     audio_dir.mkdir()
@@ -31,8 +32,8 @@ def temp_audio_folder(tmp_path, monkeypatch):
     (audio_dir / "test2.wav").write_text("fake audio 2")
     (audio_dir / "01 taunt.mp3").write_text("taunt 1")
     (audio_dir / "02 taunt.mp3").write_text("taunt 2")
-    (audio_dir / "civ_britons.mp3").write_text("britons")
-    (audio_dir / "civ_celts.mp3").write_text("celts")
+    (audio_dir / "Britons.mp3").write_text("britons")
+    (audio_dir / "Celts.mp3").write_text("celts")
 
     # Patch the audio_folder
     from aoe2_telegram_bot import _folders
