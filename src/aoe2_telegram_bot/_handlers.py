@@ -78,7 +78,10 @@ def get_random_civilization() -> Tuple[Optional[Path], Optional[str]]:
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="À la bataille! Use /aoe to get a quote from Age of Empires II.",
+        text="🏰 *Bienvenue sur le bot Age of Empires II!* ⚔️\n\n"
+        "À la bataille! Utilisez /aide pour voir toutes les commandes disponibles.\n\n"
+        "Welcome! Use /help to see all available commands.",
+        parse_mode="Markdown",
     )
 
 
@@ -88,7 +91,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🏰 *Age of Empires II Bot* 🎮
 
 *Random Audio Commands:*
-/bruit, /bruitage - Get a random AoE2 quote
+/sound, /bruit, /bruitage - Get a random AoE2 quote
 /taunt, /provoc, /provocation - Get a random taunt
 /civ, /civilisation - Get a random civilization sound
 
@@ -233,10 +236,7 @@ async def civilization(update: Update, context: ContextTypes.DEFAULT_TYPE):
     civ_name = update.message.text.strip("/")
     # Try case-insensitive search by checking all files
     all_civs = list(audio_folder.glob(civilizations_pattern))
-    civ_file = [
-        civ for civ in all_civs 
-        if civ.stem.lower() == civ_name.lower()
-    ]
+    civ_file = [civ for civ in all_civs if civ.stem.lower() == civ_name.lower()]
     logger.debug(f"Civilization {civ_name} found: {civ_file}")
 
     if not civ_file:
@@ -281,6 +281,7 @@ def register_handlers(application: ApplicationBuilder):
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("aide", help_command))
+    application.add_handler(CommandHandler("sound", send_sound))
     application.add_handler(CommandHandler("bruit", send_sound))
     application.add_handler(CommandHandler("bruitage", send_sound))
     application.add_handler(CommandHandler("civ", send_civ))
