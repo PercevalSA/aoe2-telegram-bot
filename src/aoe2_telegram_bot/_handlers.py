@@ -5,9 +5,15 @@ from typing import Optional, Tuple
 
 from telegram import Update
 from telegram.constants import ChatAction
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
 
-from ._files_id_db import get_file_id, get_random_cached_file, set_file_id
+from ._files_id_db import get_file_id, set_file_id
 from ._folders import (
     audio_caption,
     audio_folder,
@@ -36,23 +42,21 @@ def _get_random_file(
     """
     logger.debug(f"Getting random {category}")
 
-    # First try to get from cache
-    cached = get_random_cached_file(pattern)
-    if cached:
-        filename, file_id = cached
-        logger.debug(f"Using cached {category}: {filename}")
-        return None, file_id
-
     # No cached files, search filesystem
     logger.debug(f"No cached {category} files, searching filesystem")
     files = list(audio_folder.glob(pattern))
-
     if not files:
         logger.warning(f"No {category} files found")
         return None, None
 
     selected = choice(files)
     logger.debug(f"Selected {selected}")
+
+    cached_file_id = get_file_id(selected)
+    if cached_file_id:
+        logger.debug(f"Found cached file_id for selected {category}: {selected.name}")
+        return None, cached_file_id
+
     return selected, None
 
 
@@ -75,6 +79,42 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="À la bataille! Use /aoe to get a quote from Age of Empires II.",
+    )
+
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Display help message with available commands."""
+    help_text = """
+🏰 *Age of Empires II Bot Commands*
+
+*Audio Commands:*
+/aoe - Get a random AoE2 quote
+/taunt - Get a random taunt
+/civ or /civilization - Get a random civilization sound
+
+*Specific Commands:*
+/1 to /42 - Get a specific taunt by number
+/britons, /celts, etc. - Get a specific civilization sound
+/list\\_civilizations - Show all available civilizations
+
+*Other:*
+/help - Show this help message
+/start - Start the bot
+
+Enjoy! 🎮
+"""
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=help_text,
+        parse_mode="Markdown",
+    )
+
+
+async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle unknown commands."""
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Unknown command. Use /help to see available commands.",
     )
 
 
@@ -229,6 +269,7 @@ async def list_civilizations(update: Update, context: ContextTypes.DEFAULT_TYPE)
 def register_handlers(application: ApplicationBuilder):
     logger.info("Registering handlers")
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("aoe", send_sound))
     application.add_handler(CommandHandler("civilization", send_civ))
     application.add_handler(CommandHandler("list_civilizations", list_civilizations))
@@ -237,3 +278,6 @@ def register_handlers(application: ApplicationBuilder):
 
     register_taunt_handlers(application)
     register_civilization_handlers(application)
+
+    # Unknown command handler must be registered last
+    application.add_handler(MessageHandler(filters.COMMAND, unknown_command))
