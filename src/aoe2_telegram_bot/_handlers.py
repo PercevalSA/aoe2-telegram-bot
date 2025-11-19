@@ -85,23 +85,27 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Display help message with available commands."""
     help_text = """
-🏰 *Age of Empires II Bot Commands*
+🏰 *Age of Empires II Bot* 🎮
 
-*Audio Commands:*
-/aoe - Get a random AoE2 quote
-/taunt - Get a random taunt
-/civ or /civilization - Get a random civilization sound
+*Random Audio Commands:*
+/bruit, /bruitage - Get a random AoE2 quote
+/taunt, /provoc, /provocation - Get a random taunt
+/civ, /civilisation - Get a random civilization sound
 
 *Specific Commands:*
 /1 to /42 - Get a specific taunt by number
-/britons, /celts, etc. - Get a specific civilization sound
-/list\\_civilizations - Show all available civilizations
+  _Example: /11 for "11"_
+/britons, /celts, /vikings, etc. - Get a specific civilization sound
+  _Example: /britons_
 
-*Other:*
-/help - Show this help message
-/start - Start the bot
+*List Commands:*
+/list, /liste - Show all available civilizations
 
-Enjoy! 🎮
+*Help:*
+/help, /aide - Show this help message
+/start - Welcome message
+
+À la bataille! ⚔️
 """
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -259,7 +263,7 @@ def register_civilization_handlers(application: ApplicationBuilder):
 
 
 async def list_civilizations(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    civ_list = "\n".join(_get_civilization_list())
+    civ_list = "\n".join(f"/{civ}" for civ in _get_civilization_list())
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f"Available civilizations:\n{civ_list}",
@@ -270,11 +274,16 @@ def register_handlers(application: ApplicationBuilder):
     logger.info("Registering handlers")
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("aoe", send_sound))
-    application.add_handler(CommandHandler("civilization", send_civ))
-    application.add_handler(CommandHandler("list_civilizations", list_civilizations))
+    application.add_handler(CommandHandler("aide", help_command))
+    application.add_handler(CommandHandler("bruit", send_sound))
+    application.add_handler(CommandHandler("bruitage", send_sound))
     application.add_handler(CommandHandler("civ", send_civ))
+    application.add_handler(CommandHandler("civilisation", send_civ))
+    application.add_handler(CommandHandler("list", list_civilizations))
+    application.add_handler(CommandHandler("liste", list_civilizations))
     application.add_handler(CommandHandler("taunt", send_taunt))
+    application.add_handler(CommandHandler("provoc", send_taunt))
+    application.add_handler(CommandHandler("provocation", send_taunt))
 
     register_taunt_handlers(application)
     register_civilization_handlers(application)
