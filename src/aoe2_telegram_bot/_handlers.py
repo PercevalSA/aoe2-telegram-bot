@@ -230,8 +230,13 @@ async def taunt(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def civilization(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    civ_name = update.message.text.strip("/").lower()
-    civ_file = list(audio_folder.glob(f"{civ_name.capitalize()}.mp3"))
+    civ_name = update.message.text.strip("/")
+    # Try case-insensitive search by checking all files
+    all_civs = list(audio_folder.glob(civilizations_pattern))
+    civ_file = [
+        civ for civ in all_civs 
+        if civ.stem.lower() == civ_name.lower()
+    ]
     logger.debug(f"Civilization {civ_name} found: {civ_file}")
 
     if not civ_file:
@@ -259,7 +264,8 @@ def _get_civilization_list() -> list[str]:
 
 def register_civilization_handlers(application: ApplicationBuilder):
     for civ_name in _get_civilization_list():
-        application.add_handler(CommandHandler(civ_name, civilization))
+        # Register with lowercase to allow commands without capitals
+        application.add_handler(CommandHandler(civ_name.lower(), civilization))
 
 
 async def list_civilizations(update: Update, context: ContextTypes.DEFAULT_TYPE):
