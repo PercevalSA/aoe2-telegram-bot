@@ -5,10 +5,8 @@ stored in the user's config folder.
 """
 
 import json
-from fnmatch import fnmatch
 from pathlib import Path
-from random import choice
-from typing import Optional, Tuple
+from typing import Optional
 
 from ._folders import files_id_db
 
@@ -50,24 +48,3 @@ def clear_file_id_db() -> None:
 def get_all_file_ids() -> dict[str, str]:
     """Get all file IDs in the database."""
     return _files_id_cache.copy()
-
-
-def get_random_cached_file(pattern: str) -> Optional[Tuple[str, str]]:
-    """
-    Get a random filename and its file_id matching the pattern from cache.
-    Returns (filename, file_id) tuple or None if no match found.
-
-    Args:
-        pattern: Glob pattern to match against filenames (e.g., "*.wav", "[0-9][0-9] *.mp3")
-    """
-    # Filter cached files matching the pattern
-    matching_files = [
-        (filename, file_id)
-        for filename, file_id in _files_id_cache.items()
-        if fnmatch(filename, pattern)
-    ]
-
-    if not matching_files:
-        return None
-
-    return choice(matching_files)
