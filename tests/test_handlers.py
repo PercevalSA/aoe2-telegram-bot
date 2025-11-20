@@ -22,19 +22,6 @@ def test_get_random_file_from_filesystem(temp_audio_folder):
     assert file_id is None
 
 
-def test_get_random_file_from_cache(temp_audio_folder):
-    """Test getting random file from cache when available."""
-    # Populate cache
-    test_file = temp_audio_folder / "test1.wav"
-    set_file_id(test_file, "cached_id_123")
-
-    file_path, file_id = _get_random_file("*.wav", "audio")
-
-    # Should return from cache (no file_path)
-    assert file_path is None
-    assert file_id == "cached_id_123"
-
-
 def test_get_random_file_no_files(tmp_path, monkeypatch):
     """Test getting random file when no files exist."""
     from aoe2_telegram_bot import _folders

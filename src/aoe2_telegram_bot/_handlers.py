@@ -52,11 +52,6 @@ def _get_random_file(
     selected = choice(files)
     logger.debug(f"Selected {selected}")
 
-    cached_file_id = get_file_id(selected)
-    if cached_file_id:
-        logger.debug(f"Found cached file_id for selected {category}: {selected.name}")
-        return None, cached_file_id
-
     return selected, None
 
 
