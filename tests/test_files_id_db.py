@@ -102,3 +102,23 @@ def test_cache_persistence(tmp_path, monkeypatch):
     # Should have loaded from disk
     result = get_file_id(test_file)
     assert result == "persisted_id", f"Expected 'persisted_id', got {result}"
+
+
+def test_load_cache_with_corrupted_json(tmp_path, monkeypatch):
+    """Test loading cache when JSON file is corrupted."""
+    from aoe2_telegram_bot import _files_id_db
+    from aoe2_telegram_bot._files_id_db import _files_id_cache
+
+    cache_file = tmp_path / "cache.json"
+    monkeypatch.setattr(_files_id_db, "files_id_db", cache_file)
+
+    # Write corrupted JSON to file
+    cache_file.write_text("{invalid json content")
+
+    # Clear cache and try to load corrupted file
+    _files_id_cache.clear()
+    load_cache()  # Should not raise exception
+
+    # Cache should be empty after failing to load
+    all_ids = get_all_file_ids()
+    assert len(all_ids) == 0

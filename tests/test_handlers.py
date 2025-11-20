@@ -5,10 +5,19 @@ import pytest
 from aoe2_telegram_bot._files_id_db import set_file_id
 from aoe2_telegram_bot._handlers import (
     _get_random_file,
+    civilization,
     get_random_audio,
     get_random_civilization,
     get_random_taunt,
+    help_command,
+    list_civilizations,
     send_audio,
+    send_civ,
+    send_sound,
+    send_taunt,
+    start,
+    taunt,
+    unknown_command,
 )
 
 
@@ -128,3 +137,153 @@ async def test_send_audio_no_file_no_id(mock_update, mock_context, mock_audio_ca
         "no audio files available"
         in mock_context.bot.send_message.call_args.kwargs["text"].lower()
     )
+
+
+@pytest.mark.asyncio
+async def test_start_command(mock_update, mock_context):
+    """Test start command."""
+    await start(mock_update, mock_context)
+
+    mock_context.bot.send_message.assert_called_once()
+    call_kwargs = mock_context.bot.send_message.call_args.kwargs
+    assert (
+        "bienvenue" in call_kwargs["text"].lower()
+        or "welcome" in call_kwargs["text"].lower()
+    )
+
+
+@pytest.mark.asyncio
+async def test_help_command(mock_update, mock_context):
+    """Test help command."""
+    await help_command(mock_update, mock_context)
+
+    mock_context.bot.send_message.assert_called_once()
+    call_kwargs = mock_context.bot.send_message.call_args.kwargs
+    assert (
+        "aoe" in call_kwargs["text"].lower()
+        or "commands" in call_kwargs["text"].lower()
+    )
+
+
+@pytest.mark.asyncio
+async def test_unknown_command(mock_update, mock_context):
+    """Test unknown command handler."""
+    await unknown_command(mock_update, mock_context)
+
+    mock_context.bot.send_message.assert_called_once()
+    call_kwargs = mock_context.bot.send_message.call_args.kwargs
+    assert "unknown" in call_kwargs["text"].lower()
+
+
+@pytest.mark.asyncio
+async def test_send_sound(
+    temp_audio_folder, mock_update, mock_context, mock_audio_caption
+):
+    """Test send_sound command."""
+    await send_sound(mock_update, mock_context)
+
+    # Should have sent audio
+    mock_context.bot.send_audio.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_send_civ(
+    temp_audio_folder, mock_update, mock_context, mock_audio_caption
+):
+    """Test send_civ command."""
+    await send_civ(mock_update, mock_context)
+
+    # Should have sent audio
+    mock_context.bot.send_audio.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_send_taunt_command(
+    temp_audio_folder, mock_update, mock_context, mock_audio_caption
+):
+    """Test send_taunt command."""
+    await send_taunt(mock_update, mock_context)
+
+    # Should have sent audio
+    mock_context.bot.send_audio.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_taunt_specific_number(
+    temp_audio_folder, mock_update, mock_context, mock_audio_caption
+):
+    """Test taunt command with specific number."""
+    mock_update.message.text = "/11"
+
+    # Create taunt file
+    taunt_file = temp_audio_folder / "11 wololo.mp3"
+    taunt_file.write_text("fake taunt")
+
+    await taunt(mock_update, mock_context)
+
+    # Should have sent audio
+    mock_context.bot.send_audio.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_taunt_not_found(temp_audio_folder, mock_update, mock_context):
+    """Test taunt command when taunt doesn't exist."""
+    mock_update.message.text = "/99"
+
+    await taunt(mock_update, mock_context)
+
+    # Should send error message
+    mock_context.bot.send_message.assert_called_once()
+    call_kwargs = mock_context.bot.send_message.call_args.kwargs
+    assert "not found" in call_kwargs["text"].lower()
+
+
+@pytest.mark.asyncio
+async def test_civilization_specific(
+    temp_audio_folder, mock_update, mock_context, mock_audio_caption
+):
+    """Test civilization command with specific civ."""
+    mock_update.message.text = "/britons"
+
+    await civilization(mock_update, mock_context)
+
+    # Should have sent audio
+    mock_context.bot.send_audio.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_civilization_case_insensitive(
+    temp_audio_folder, mock_update, mock_context, mock_audio_caption
+):
+    """Test civilization command is case insensitive."""
+    mock_update.message.text = "/BRITONS"
+
+    await civilization(mock_update, mock_context)
+
+    # Should have sent audio
+    mock_context.bot.send_audio.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_civilization_not_found(temp_audio_folder, mock_update, mock_context):
+    """Test civilization command when civ doesn't exist."""
+    mock_update.message.text = "/atlantis"
+
+    await civilization(mock_update, mock_context)
+
+    # Should send error message
+    mock_context.bot.send_message.assert_called_once()
+    call_kwargs = mock_context.bot.send_message.call_args.kwargs
+    assert "not found" in call_kwargs["text"].lower()
+
+
+@pytest.mark.asyncio
+async def test_list_civilizations(temp_audio_folder, mock_update, mock_context):
+    """Test list civilizations command."""
+    await list_civilizations(mock_update, mock_context)
+
+    mock_context.bot.send_message.assert_called_once()
+    call_kwargs = mock_context.bot.send_message.call_args.kwargs
+    text = call_kwargs["text"]
+    # Should contain civilization names with slashes
+    assert "/britons" in text.lower() or "/celts" in text.lower()
