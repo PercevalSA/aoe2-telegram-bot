@@ -29,44 +29,92 @@ logger = logging.getLogger(__name__)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="🏰 *Bienvenue sur le bot Age of Empires II!* ⚔️\n\n"
-        "À la bataille! Utilisez /aide pour voir toutes les commandes disponibles.\n\n"
-        "Welcome! Use /help to see all available commands.",
+        text=(
+            "🏰 *Bienvenue sur le bot Sound Box Age of Empires II!* ⚔️\n\n"
+            "utilisez /aide pour la liste des commandes.\n"
+            "use /help for the list of commands.\n\n"
+            "Vous pouvez aussi utiliser /start pour revenir à ce message. / You can also use /start to return here."
+        ),
         parse_mode="Markdown",
     )
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Display help message with available commands."""
-    help_text = """
+    """Display help message with available commands in the language
+    matching the invoked command (/help -> English, /aide -> Français).
+    """
+    # Determine which command was used to invoke help
+    invoked = None
+    if (
+        update
+        and getattr(update, "message", None)
+        and getattr(update.message, "text", None)
+    ):
+        invoked = update.message.text.split()[0].lower()
+
+    # English help — only English command aliases
+    en = """
 🏰 *Age of Empires II Bot* 🎮
 
 *Random Audio Commands:*
-/sound, /bruit, /bruitage - Get a random AoE2 quote
-/taunt, /provoc, /provocation - Get a random taunt
-/civ, /civilisation - Get a random civilization sound
+/sound - Get a random AoE2 quote
+/taunt - Get a random taunt
+/civ - Get a random civilization sound
 
 *Specific Commands:*
 /1 to /42 - Get a specific taunt by number
-  _Example: /11 for "11"_
+    _Example: /11 for "11"_
 /britons, /celts, /vikings, etc. - Get a specific civilization sound
-  _Example: /britons_
+    _Example: /britons_
 
 *List Commands:*
-/list, /liste - Show all available sounds
-/lsciv - Show all available civilizations (explicit)
-/lstaunts - Show all available taunts
-/lssounds - Show all available sound quotes
+/list_sounds - Show all available sound quotes
+/list_taunts - Show all available taunts
+/list_civilizations - Show all available civilizations
 
 *Help:*
-/help, /aide - Show this help message
+/help - Show this help message (English)
 /start - Welcome message
 
-À la bataille! ⚔️
+à la bataille! ⚔️
 """
+
+    # French help — only French command aliases
+    fr = """
+🏰 *Bot Age of Empires II* 🎮
+
+*Commandes audio aléatoires :*
+/bruitage - Obtenir un son aléatoire de AoE2 
+/provocation - Obtenir une provocation aléatoire
+/civilisation - Obtenir un son de civilisation aléatoire
+
+*Commandes spécifiques :*
+/1 à /42 - Obtenir une provocation spécifique par numéro
+    _Exemple : /11 pour "11"_
+/britons, /celts, /vikings, etc. - Obtenir un son de civilisation spécifique
+    _Exemple : /britons_
+
+*Commandes de listes :*
+/liste_bruits - Afficher toutes les citations sonores disponibles
+/liste_provocations - Afficher toutes les provocations disponibles
+/liste_civilisations - Afficher toutes les civilisations disponibles
+
+*Aide :*
+/aide - Afficher ce message d'aide (Français)
+/start - Message de bienvenue
+
+à la bataille ! ⚔️
+"""
+
+    # Choose language: french if invoked with /aide, else english
+    if invoked and invoked.startswith("/aide"):
+        text = fr
+    else:
+        text = en
+
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=help_text,
+        text=text,
         parse_mode="Markdown",
     )
 
@@ -287,22 +335,17 @@ def register_handlers(application: ApplicationBuilder):
         "help": help_command,
         "aide": help_command,
         "sound": send_sound,
-        "bruit": send_sound,
         "bruitage": send_sound,
-        "civ": send_civ,
         "civilization": send_civ,
         "civilisation": send_civ,
-        "list": list_civilizations,
-        "liste": list_civilizations,
-        "list_civilizations": list_civilizations,
-        "lsciv": list_civilizations,
-        "list_taunts": list_taunts,
-        "lst": list_taunts,
-        "list_sounds": list_sounds,
-        "lss": list_sounds,
         "taunt": send_taunt,
-        "provoc": send_taunt,
         "provocation": send_taunt,
+        "list_sounds": list_sounds,
+        "liste_bruits": list_sounds,
+        "list_civilizations": list_civilizations,
+        "liste_civilisations": list_civilizations,
+        "list_taunts": list_taunts,
+        "liste_provocations": list_taunts,
     }
 
     for command, function in handlers.items():
