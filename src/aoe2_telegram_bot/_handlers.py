@@ -42,7 +42,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Display help message with available commands in english"""
-
     en = """
 🏰 *Age of Empires II Bot* 🎮
 
@@ -58,9 +57,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     _Example: /britons_
 
 *List Commands:*
-/list_sounds - Show all available sounds
-/list_taunts - Show all available taunts
-/list_civilizations - Show all available civilizations
+/taunts - Show all available taunts
+/civilizations - Show all available civilizations
+/sounds - Show all available sounds
 
 *Help:*
 /help - Show this help message (English)
@@ -76,7 +75,6 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def help_command_french(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Display help message with available commands in french"""
-
     fr = """
 🏰 *Bot Age of Empires II* 🎮
 
@@ -87,14 +85,12 @@ async def help_command_french(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 *Commandes spécifiques :*
 /1 à /42 - Obtenir une provocation spécifique par numéro
-    _Exemple : /11 pour "11"_
 /britons, /celts, /vikings, etc. - Obtenir un son de civilisation spécifique
-    _Exemple : /britons_
 
 *Commandes de listes :*
-/liste_bruits - Afficher toutes les citations sonores disponibles
-/liste_provocations - Afficher toutes les provocations disponibles
-/liste_civilisations - Afficher toutes les civilisations disponibles
+/provocations - Afficher toutes les provocations disponibles
+/civilisations - Afficher toutes les civilisations disponibles
+/bruits - Afficher tous les sons disponibles
 
 *Aide :*
 /aide - Afficher ce message d'aide (Français)
@@ -102,6 +98,8 @@ async def help_command_french(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 à la bataille ! ⚔️
 """
+
+    logger.warning(f"sending french help message: {fr[600:610]}")
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text=fr, parse_mode="Markdown"
     )
@@ -328,12 +326,12 @@ def register_handlers(application: ApplicationBuilder):
         "civilisation": send_civ,
         "taunt": send_taunt,
         "provocation": send_taunt,
-        "list_sounds": list_sounds,
-        "liste_bruits": list_sounds,
-        "list_civilizations": list_civilizations,
-        "liste_civilisations": list_civilizations,
-        "list_taunts": list_taunts,
-        "liste_provocations": list_taunts,
+        "sounds": list_sounds,
+        "bruits": list_sounds,
+        "civilizations": list_civilizations,
+        "civilisations": list_civilizations,
+        "taunts": list_taunts,
+        "provocations": list_taunts,
     }
 
     for command, function in handlers.items():
