@@ -1,7 +1,8 @@
+"""Handler functions for Telegram bot commands."""
+
 import logging
 from pathlib import Path
-from random import choice
-from typing import Optional, Tuple
+from typing import Optional
 
 from telegram import Update
 from telegram.constants import ChatAction
@@ -13,61 +14,16 @@ from telegram.ext import (
     filters,
 )
 
-from ._files_id_db import get_file_id, set_file_id
-from ._folders import (
-    audio_caption,
-    audio_folder,
-    audio_pattern,
-    civilizations_pattern,
-    taunts_pattern,
+from ._files import (
+    get_civilization_list,
+    get_file_id,
+    get_sound_list,
+    get_taunt_list,
+    set_file_id,
 )
+from ._folders import audio_caption, audio_folder
 
 logger = logging.getLogger(__name__)
-
-
-def _get_random_file(
-    pattern: str, category: str
-) -> Tuple[Optional[Path], Optional[str]]:
-    """Get a random file matching the pattern, checking cache first.
-
-    Args:
-        pattern: Glob pattern to match files (e.g., "*.wav", "[0-9][0-9] *.mp3")
-        category: Category name for logging (e.g., "audio", "taunt", "civilization")
-
-    Returns:
-        (file_path, file_id) tuple where one of them will be None:
-        - If cached: (None, file_id)
-        - If new file: (file_path, None)
-        - If no files: (None, None)
-    """
-    logger.debug(f"Getting random {category}")
-
-    # No cached files, search filesystem
-    logger.debug(f"No cached {category} files, searching filesystem")
-    files = list(audio_folder.glob(pattern))
-    if not files:
-        logger.warning(f"No {category} files found")
-        return None, None
-
-    selected = choice(files)
-    logger.debug(f"Selected {selected}")
-
-    return selected, None
-
-
-def get_random_audio() -> Tuple[Optional[Path], Optional[str]]:
-    """Return a random AoE2 quote audio file."""
-    return _get_random_file(audio_pattern, "audio")
-
-
-def get_random_taunt() -> Tuple[Optional[Path], Optional[str]]:
-    """Return a random AoE2 taunt audio file."""
-    return _get_random_file(taunts_pattern, "taunt")
-
-
-def get_random_civilization() -> Tuple[Optional[Path], Optional[str]]:
-    """Return a random AoE2 civilization audio file."""
-    return _get_random_file(civilizations_pattern, "civilization")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -97,7 +53,10 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
   _Example: /britons_
 
 *List Commands:*
-/list, /liste - Show all available civilizations
+/list, /liste - Show all available sounds
+/lsciv - Show all available civilizations (explicit)
+/lstaunts - Show all available taunts
+/lssounds - Show all available sound quotes
 
 *Help:*
 /help, /aide - Show this help message
@@ -116,7 +75,8 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle unknown commands."""
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="Unknown command. Use /help to see available commands.",
+        text="Unknown command. Use /help to see available commands.\n"
+        "Commande inconnue. Utilisez /aide pour voir les commandes disponibles.",
     )
 
 
@@ -230,8 +190,8 @@ async def taunt(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def civilization(update: Update, context: ContextTypes.DEFAULT_TYPE):
     civ_name = update.message.text.strip("/")
     # Try case-insensitive search by checking all files
-    all_civs = list(audio_folder.glob(civilizations_pattern))
-    civ_file = [civ for civ in all_civs if civ.stem.lower() == civ_name.lower()]
+    all_civs = get_civilization_list()
+    civ_file = [civ for civ in all_civs if civ.lower() == civ_name.lower()]
     logger.debug(f"Civilization {civ_name} found: {civ_file}")
 
     if not civ_file:
@@ -247,45 +207,106 @@ async def civilization(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_audio(update, context, civ)
 
 
-def register_taunt_handlers(application: ApplicationBuilder):
-    taunt_number: int = 42
-    for i in range(1, taunt_number + 1):
-        application.add_handler(CommandHandler(f"{i}", taunt))
-
-
-def _get_civilization_list() -> list[str]:
-    return [str(civ.stem) for civ in list(audio_folder.glob(civilizations_pattern))]
-
-
-def register_civilization_handlers(application: ApplicationBuilder):
-    for civ_name in _get_civilization_list():
-        # Register with lowercase to allow commands without capitals
-        application.add_handler(CommandHandler(civ_name.lower(), civilization))
-
-
 async def list_civilizations(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    civ_list = "\n".join(f"/{civ}" for civ in _get_civilization_list())
+    civ_list = "\n".join(f"/{civ}" for civ in get_civilization_list())
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f"Available civilizations:\n{civ_list}",
     )
 
 
+async def list_taunts(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """List all available taunts."""
+    taunts = get_taunt_list()
+    if not taunts:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="No taunts available.",
+        )
+        return
+
+    # Format as numbered list with command
+    taunt_list = "\n".join(
+        f"/{t.split()[0]}: {' '.join(t.split()[1:])}"
+        for t in taunts
+        if t.split()[0].isdigit()
+    )
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f"Available taunts:\n{taunt_list}",
+    )
+
+
+async def list_sounds(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """List all available sound files."""
+    sounds = get_sound_list()
+    if not sounds:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="No sounds available.",
+        )
+        return
+
+    sound_list = "\n".join(sounds)
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f"Available sounds ({len(sounds)} files):\n{sound_list}",
+    )
+
+
+def register_taunt_handlers(application: ApplicationBuilder):
+    """Register handlers for all taunt numbers dynamically based on available files."""
+    taunt_numbers = set()
+    for taunt_file in get_taunt_list():
+        # Extract number from filename (e.g., "01 start the game.mp3" -> "1")
+        parts = taunt_file.split()
+        if parts and parts[0].isdigit():
+            taunt_numbers.add(int(parts[0]))
+
+    for taunt_num in sorted(taunt_numbers):
+        application.add_handler(CommandHandler(str(taunt_num), taunt))
+
+
+def register_civilization_handlers(application: ApplicationBuilder):
+    """Register handlers for all civilizations dynamically."""
+    for civ_name in get_civilization_list():
+        # Register with lowercase to allow commands without capitals
+        application.add_handler(CommandHandler(civ_name, civilization))
+        application.add_handler(CommandHandler(civ_name.lower(), civilization))
+
+
+# def register_sounds_handlers(application: ApplicationBuilder):
+
+
 def register_handlers(application: ApplicationBuilder):
-    logger.info("Registering handlers")
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("aide", help_command))
-    application.add_handler(CommandHandler("sound", send_sound))
-    application.add_handler(CommandHandler("bruit", send_sound))
-    application.add_handler(CommandHandler("bruitage", send_sound))
-    application.add_handler(CommandHandler("civ", send_civ))
-    application.add_handler(CommandHandler("civilisation", send_civ))
-    application.add_handler(CommandHandler("list", list_civilizations))
-    application.add_handler(CommandHandler("liste", list_civilizations))
-    application.add_handler(CommandHandler("taunt", send_taunt))
-    application.add_handler(CommandHandler("provoc", send_taunt))
-    application.add_handler(CommandHandler("provocation", send_taunt))
+    """Register all bot handlers."""
+    logger.debug("Registering handlers")
+
+    handlers = {
+        "start": start,
+        "help": help_command,
+        "aide": help_command,
+        "sound": send_sound,
+        "bruit": send_sound,
+        "bruitage": send_sound,
+        "civ": send_civ,
+        "civilization": send_civ,
+        "civilisation": send_civ,
+        "list": list_civilizations,
+        "liste": list_civilizations,
+        "list_civilizations": list_civilizations,
+        "lsciv": list_civilizations,
+        "list_taunts": list_taunts,
+        "lst": list_taunts,
+        "list_sounds": list_sounds,
+        "lss": list_sounds,
+        "taunt": send_taunt,
+        "provoc": send_taunt,
+        "provocation": send_taunt,
+    }
+
+    for command, function in handlers.items():
+        application.add_handler(CommandHandler(command, function))
 
     register_taunt_handlers(application)
     register_civilization_handlers(application)

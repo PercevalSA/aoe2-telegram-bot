@@ -5,7 +5,7 @@ from typing import Optional
 from telegram import Update
 from telegram.ext import ApplicationBuilder
 
-from ._files_id_db import load_cache
+from ._files import load_cache
 from ._folders import env_file
 from ._handlers import register_handlers
 from .bootstrap import bootstrap
