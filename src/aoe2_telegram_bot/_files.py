@@ -25,8 +25,12 @@ def get_sound_list() -> list[str]:
     return [str(sound.stem) for sound in list(audio_folder.glob(audio_pattern))]
 
 
+def get_civilization_files() -> list[Path]:
+    return list(audio_folder.glob(civilizations_pattern))
+
+
 def get_civilization_list() -> list[str]:
-    return [str(civ.stem) for civ in list(audio_folder.glob(civilizations_pattern))]
+    return [str(civ.stem) for civ in get_civilization_files()]
 
 
 def get_taunt_list() -> list[str]:

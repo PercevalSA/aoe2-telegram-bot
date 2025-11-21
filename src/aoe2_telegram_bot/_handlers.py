@@ -15,8 +15,12 @@ from telegram.ext import (
 )
 
 from ._files import (
+    get_civilization_files,
     get_civilization_list,
     get_file_id,
+    get_random_audio,
+    get_random_civilization,
+    get_random_taunt,
     get_sound_list,
     get_taunt_list,
     set_file_id,
@@ -224,8 +228,9 @@ async def taunt(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def civilization(update: Update, context: ContextTypes.DEFAULT_TYPE):
     civ_name = update.message.text.strip("/")
     # Try case-insensitive search by checking all files
-    all_civs = get_civilization_list()
-    civ_file = [civ for civ in all_civs if civ.lower() == civ_name.lower()]
+    civ_file = [
+        civ for civ in get_civilization_files() if civ.stem.lower() == civ_name.lower()
+    ]
     logger.debug(f"Civilization {civ_name} found: {civ_file}")
 
     if not civ_file:
