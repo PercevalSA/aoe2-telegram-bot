@@ -21,6 +21,7 @@ from ._files import (
     get_random_audio,
     get_random_civilization,
     get_random_taunt,
+    get_sound_files,
     get_sound_list,
     get_taunt_list,
     set_file_id,
@@ -194,15 +195,15 @@ async def _send_random_audio(
     await send_audio(update, context, audio_file, file_id)
 
 
-async def send_sound(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def send_random_sound(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await _send_random_audio(update, context, get_random_audio)
 
 
-async def send_civ(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def send_random_civilization(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await _send_random_audio(update, context, get_random_civilization)
 
 
-async def send_taunt(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def send_random_taunt(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await _send_random_audio(update, context, get_random_taunt)
 
 
@@ -246,6 +247,27 @@ async def civilization(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_audio(update, context, civ)
 
 
+async def sound(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    sound_name = update.message.text.strip("/")
+    # Try case-insensitive search by checking all files
+    sound_file = [
+        sound for sound in get_sound_files() if sound.stem.lower() == sound_name.lower()
+    ]
+    logger.debug(f"Sound {sound_name} found: {sound_file}")
+
+    if not sound_file:
+        logger.debug(f"Sound {sound_name} not found")
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Sound {sound_name} not found",
+        )
+        return
+
+    sound = sound_file[0]
+    logger.debug(f"Sending sound {sound}")
+    await send_audio(update, context, sound)
+
+
 async def list_civilizations(update: Update, context: ContextTypes.DEFAULT_TYPE):
     civ_list = "\n".join(f"/{civ}" for civ in get_civilization_list())
     await context.bot.send_message(
@@ -286,10 +308,11 @@ async def list_sounds(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    sound_list = "\n".join(sounds)
+    sound_list = "\n".join(f"/{sound}" for sound in sounds)
+
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f"Available sounds ({len(sounds)} files):\n{sound_list}",
+        text=f"Available sounds ({len(sounds)}):\n{sound_list}",
     )
 
 
@@ -314,7 +337,12 @@ def register_civilization_handlers(application: ApplicationBuilder):
         application.add_handler(CommandHandler(civ_name.lower(), civilization))
 
 
-# def register_sounds_handlers(application: ApplicationBuilder):
+def register_sounds_handlers(application: ApplicationBuilder):
+    """Register handlers for all sound files dynamically."""
+    for sound_name in get_sound_list():
+        # Register with lowercase to allow commands without capitals
+        application.add_handler(CommandHandler(sound_name, sound))
+        application.add_handler(CommandHandler(sound_name.lower(), sound))
 
 
 def register_handlers(application: ApplicationBuilder):
@@ -325,12 +353,12 @@ def register_handlers(application: ApplicationBuilder):
         "start": start,
         "help": help_command,
         "aide": help_command_french,
-        "sound": send_sound,
-        "bruitage": send_sound,
-        "civilization": send_civ,
-        "civilisation": send_civ,
-        "taunt": send_taunt,
-        "provocation": send_taunt,
+        "sound": send_random_sound,
+        "bruitage": send_random_sound,
+        "civilization": send_random_civilization,
+        "civilisation": send_random_civilization,
+        "taunt": send_random_taunt,
+        "provocation": send_random_taunt,
         "sounds": list_sounds,
         "bruits": list_sounds,
         "civilizations": list_civilizations,
@@ -344,6 +372,7 @@ def register_handlers(application: ApplicationBuilder):
 
     register_taunt_handlers(application)
     register_civilization_handlers(application)
+    register_sounds_handlers(application)
 
     # Unknown command handler must be registered last
     application.add_handler(MessageHandler(filters.COMMAND, unknown_command))

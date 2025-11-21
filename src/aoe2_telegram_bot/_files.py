@@ -21,8 +21,12 @@ taunts_pattern = "[0-9][0-9] *.mp3"
 audio_pattern = "*.wav"
 
 
+def get_sound_files() -> list[Path]:
+    return list(audio_folder.glob(audio_pattern))
+
+
 def get_sound_list() -> list[str]:
-    return [str(sound.stem) for sound in list(audio_folder.glob(audio_pattern))]
+    return [str(sound.stem) for sound in get_sound_files()]
 
 
 def get_civilization_files() -> list[Path]:
